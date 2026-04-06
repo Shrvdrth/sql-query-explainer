@@ -1,2 +1,91 @@
-<!-- initial commit -->
- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SQL Query Explainer</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; }
+    textarea { width: 100%; min-height: 120px; }
+    input, button { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+    .result { white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+    .note { font-size: 0.9em; color: #666; }
+  </style>
+</head>
+<body>
+  <h1>SQL Query Explainer</h1>
+
+  <p class="note">
+    Enter your API key for this session only. It is not stored anywhere.
+  </p>
+
+  <label>API Key (session only):</label>
+  <input type="password" id="apiKey" placeholder="Enter your API key" />
+
+  <label>SQL Query:</label>
+  <textarea id="sqlQuery" placeholder="Paste your SQL query here"></textarea>
+
+  <button id="explainBtn">Explain SQL Query</button>
+
+  <h2>Explanation</h2>
+  <div id="result" class="result"></div>
+
+  <script>
+    const explainBtn = document.getElementById('explainBtn');
+    const apiKeyInput = document.getElementById('apiKey');
+    const sqlQueryInput = document.getElementById('sqlQuery');
+    const resultDiv = document.getElementById('result');
+
+    explainBtn.addEventListener('click', async () => {
+      const apiKey = apiKeyInput.value.trim();
+      const sqlQuery = sqlQueryInput.value.trim();
+
+      if (!apiKey) {
+        alert('Please enter your API key.');
+        return;
+      }
+      if (!sqlQuery) {
+        alert('Please enter a SQL query.');
+        return;
+      }
+
+      resultDiv.textContent = 'Explaining your query...';
+
+      try {
+        // Example using a generic OpenAI-compatible endpoint.
+        // Replace URL/model according to the provider you use.
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: 'You explain SQL queries in simple, plain English, line by line.'
+              },
+              {
+                role: 'user',
+                content: `Explain this SQL query line by line in plain English:\n\n${sqlQuery}`
+              }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('API request failed: ' + response.status);
+        }
+
+        const data = await response.json();
+        const explanation = data.choices?.[0]?.message?.content || 'No explanation returned.';
+        resultDiv.textContent = explanation;
+      } catch (error) {
+        console.error(error);
+        resultDiv.textContent = 'Error: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
